@@ -121,3 +121,14 @@ def test_validator_reports_stage_capacity_overflow() -> None:
     )
 
     assert [issue.code for issue in validate(program)] == ["buffer-capacity"]
+
+
+def test_validator_reports_unordered_effect_dependency() -> None:
+    program = TaskTileProgram(
+        tasks=(
+            Task("writer", 2, writes=("x",)),
+            Task("reader", 1, reads=("x",)),
+        )
+    )
+
+    assert [issue.code for issue in validate(program)] == ["task-effect-order"]

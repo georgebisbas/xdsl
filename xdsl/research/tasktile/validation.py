@@ -136,6 +136,42 @@ def validate(program: TaskTileProgram) -> tuple[ValidationIssue, ...]:
                 )
             )
     scheduled_tasks = [task for task in program.tasks if task.start is not None]
+    task_by_id = {task.id: task for task in program.tasks}
+
+    def reaches(source: str, target: str) -> bool:
+        pending = [target]
+        seen: set[str] = set()
+        while pending:
+            current = pending.pop()
+            if current in seen:
+                continue
+            seen.add(current)
+            if current == source:
+                return True
+            pending.extend(task_by_id[current].dependencies)
+        return False
+
+    for first in sorted(program.tasks, key=lambda item: item.id):
+        first_writes = set(first.writes)
+        if not first_writes:
+            continue
+        for second in sorted(program.tasks, key=lambda item: item.id):
+            if first.id == second.id:
+                continue
+            if not first_writes & (set(second.reads) | set(second.writes)):
+                continue
+            if (
+                first.start is None
+                and second.start is None
+                and not reaches(first.id, second.id)
+                and not reaches(second.id, first.id)
+            ):
+                issues.append(
+                    ValidationIssue(
+                        "task-effect-order",
+                        f"tasks {first.id} and {second.id} share effects without dependency order",
+                    )
+                )
     for index, first in enumerate(scheduled_tasks):
         first_finish = first.start + first.duration  # type: ignore[operator]
         first_writes = set(first.writes)
