@@ -132,3 +132,17 @@ def test_validator_reports_unordered_effect_dependency() -> None:
     )
 
     assert [issue.code for issue in validate(program)] == ["task-effect-order"]
+
+
+def test_validator_reports_inconsistent_collective_rank_sets() -> None:
+    program = TaskTileProgram(
+        tasks=(Task("a", 1), Task("b", 1)),
+        communication=(
+            CommPhase("first", "a", (0, 1), 4, "collective"),
+            CommPhase("second", "b", (0, 1, 2), 4, "collective"),
+        ),
+    )
+
+    assert [issue.code for issue in validate(program)] == [
+        "collective-ranks",
+    ]

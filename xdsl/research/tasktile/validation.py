@@ -198,8 +198,10 @@ def validate(program: TaskTileProgram) -> tuple[ValidationIssue, ...]:
                     f"communication phase {phase.id} uses unknown synchronization {phase.synchronization}",
                 )
             )
-        if len(set(phase.ranks)) != len(phase.ranks) or any(
-            rank < 0 for rank in phase.ranks
+        if (
+            len(set(phase.ranks)) != len(phase.ranks)
+            or any(rank < 0 for rank in phase.ranks)
+            or tuple(sorted(phase.ranks)) != phase.ranks
         ):
             issues.append(
                 ValidationIssue(
@@ -207,6 +209,19 @@ def validate(program: TaskTileProgram) -> tuple[ValidationIssue, ...]:
                     f"communication phase {phase.id} has invalid rank set {phase.ranks}",
                 )
             )
+
+    collective_ranks = {
+        phase.ranks
+        for phase in program.communication
+        if phase.synchronization == "collective"
+    }
+    if len(collective_ranks) > 1:
+        issues.append(
+            ValidationIssue(
+                "collective-ranks",
+                "collective communication phases use inconsistent rank sets",
+            )
+        )
 
     return tuple(issues)
 
