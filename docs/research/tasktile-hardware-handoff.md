@@ -10,6 +10,7 @@ not claim that Ascend hardware is available in the current environment.
 - PyPTO exporter revision: `3b866d5ae`
 - export boundary: `post:MaterializeValidShapeSymbols`
 - simulation image: `pypto3-hw-native-sys:sim-xdsl-tasktile`
+- verified image digest: `sha256:c3d417274cc6fc37bba818cdb89c4ece4522e7b172c39232d87c69a31d05e5eb`
 - PTOAS: `v0.65`
 
 The non-NPU fallback remains the simulation Dockerfile documented in
