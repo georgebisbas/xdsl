@@ -2,6 +2,7 @@ import json
 
 from xdsl.research.tasktile.experiment import (
     dump_synthetic_experiment,
+    run_constraint_ablations,
     run_synthetic_experiment,
     summarize_synthetic_experiment,
 )
@@ -36,3 +37,15 @@ def test_synthetic_summary_is_table_ready() -> None:
     assert all(row["oracle_candidates"] > 0 for row in summary)
     assert all(row["heuristic_gap"] >= 1.0 for row in summary)
     assert any(row["joint_binding_changes"] > 0 for row in summary)
+
+
+def test_constraint_ablations_are_deterministic_and_complete() -> None:
+    first = run_constraint_ablations()
+    assert first == run_constraint_ablations()
+    assert len(first) == 15
+    assert {row["ablation"] for row in first} == {
+        "without_communication",
+        "without_buffers",
+        "without_dependencies",
+    }
+    assert all("critical_path_delta" in row for row in first)

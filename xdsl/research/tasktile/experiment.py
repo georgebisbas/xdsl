@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from typing import Any
 
 from .model import Buffer, CommPhase, Task, TaskTileProgram, TileStage
@@ -60,9 +60,7 @@ def synthetic_corpus() -> tuple[tuple[str, TaskTileProgram], ...]:
                     Task("exchange", 2, ("produce",), engine="mte"),
                     Task("consume", 3, ("exchange",), engine="aiv"),
                 ),
-                communication=(
-                    CommPhase("allgather", "exchange", (0, 1, 2, 3), 8192),
-                ),
+                communication=(CommPhase("allgather", "exchange", (0, 1, 2, 3), 8192),),
             ),
         ),
         (
@@ -122,6 +120,10 @@ def dump_synthetic_experiment(config: ReplayConfig | None = None) -> str:
     return json.dumps(run_synthetic_experiment(config), indent=2, sort_keys=True) + "\n"
 
 
+def dump_constraint_ablations(config: ReplayConfig | None = None) -> str:
+    return json.dumps(run_constraint_ablations(config), indent=2, sort_keys=True) + "\n"
+
+
 def summarize_synthetic_experiment(
     config: ReplayConfig | None = None,
 ) -> list[dict[str, Any]]:
@@ -135,7 +137,9 @@ def summarize_synthetic_experiment(
         native = variants["native"]["critical_path"]
         joint = variants["joint"]["critical_path"]
         oracle = variants.get("oracle", variants["joint"])["critical_path"]
-        original = next(program for name, program in synthetic_corpus() if name == workload)
+        original = next(
+            program for name, program in synthetic_corpus() if name == workload
+        )
         joint_program = schedule_joint(original)
         binding_changes = sum(
             original_task.start != joint_task.start
@@ -154,11 +158,19 @@ def summarize_synthetic_experiment(
                 "workload": workload,
                 "oracle_candidates": len(
                     enumerate_small_programs(
-                        next(program for name, program in synthetic_corpus() if name == workload)
+                        next(
+                            program
+                            for name, program in synthetic_corpus()
+                            if name == workload
+                        )
                     )
                 ),
                 "heuristic_gap": heuristic_gap(
-                    next(program for name, program in synthetic_corpus() if name == workload)
+                    next(
+                        program
+                        for name, program in synthetic_corpus()
+                        if name == workload
+                    )
                 ),
                 "native_critical_path": native,
                 "joint_critical_path": joint,
@@ -171,19 +183,62 @@ def summarize_synthetic_experiment(
     return summary
 
 
+def run_constraint_ablations(
+    config: ReplayConfig | None = None,
+) -> list[dict[str, Any]]:
+    """
+    Measure joint replay deltas after removing one constraint family.
+
+    This is a causal diagnostic, not a legal compiler transformation: each
+    ablation intentionally removes one class of information from the model so
+    that the resulting change can be reported separately from the legal
+    intervention matrix.
+    """
+    config = config or ReplayConfig()
+    results: list[dict[str, Any]] = []
+    for workload, program in synthetic_corpus():
+        baseline = replay(schedule_joint(program), config)
+        variants = {
+            "without_communication": replace(program, communication=()),
+            "without_buffers": replace(program, stages=(), buffers=()),
+            "without_dependencies": replace(
+                program,
+                tasks=tuple(replace(task, dependencies=()) for task in program.tasks),
+            ),
+        }
+        for ablation, variant in variants.items():
+            cost = replay(schedule_joint(variant), config)
+            results.append(
+                {
+                    "workload": workload,
+                    "ablation": ablation,
+                    "baseline_joint_critical_path": baseline.critical_path,
+                    "ablated_joint_critical_path": cost.critical_path,
+                    "critical_path_delta": cost.critical_path - baseline.critical_path,
+                    "baseline_peak_on_chip_memory": baseline.peak_on_chip_memory,
+                    "ablated_peak_on_chip_memory": cost.peak_on_chip_memory,
+                }
+            )
+    return results
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Run the deterministic TaskTile replay experiment"
     )
     parser.add_argument("--sync-cost", type=int, default=1)
     parser.add_argument("--transfer-cost-per-byte", type=float, default=0.0)
-    args = parser.parse_args(argv)
-    print(
-        dump_synthetic_experiment(
-            ReplayConfig(args.sync_cost, args.transfer_cost_per_byte)
-        ),
-        end="",
+    parser.add_argument(
+        "--ablations", action="store_true", help="emit constraint-ablation records"
     )
+    args = parser.parse_args(argv)
+    config = ReplayConfig(args.sync_cost, args.transfer_cost_per_byte)
+    payload = (
+        dump_constraint_ablations(config)
+        if args.ablations
+        else dump_synthetic_experiment(config)
+    )
+    print(payload, end="")
     return 0
 
 
