@@ -40,6 +40,12 @@ def validate(program: TaskTileProgram) -> tuple[ValidationIssue, ...]:
                     "task-engine", f"task {task.id} uses unknown engine {task.engine}"
                 )
             )
+        if any(dimension <= 0 for dimension in task.shape):
+            issues.append(
+                ValidationIssue(
+                    "task-shape", f"task {task.id} has non-positive shape {task.shape}"
+                )
+            )
         if task.start is not None and task.start < 0:
             issues.append(
                 ValidationIssue(
@@ -115,6 +121,25 @@ def validate(program: TaskTileProgram) -> tuple[ValidationIssue, ...]:
                     "communication-id", f"communication phase {phase_id} is duplicated"
                 )
             )
+    scheduled_tasks = [task for task in program.tasks if task.start is not None]
+    for index, first in enumerate(scheduled_tasks):
+        first_finish = first.start + first.duration  # type: ignore[operator]
+        first_writes = set(first.writes)
+        for second in scheduled_tasks[index + 1 :]:
+            second_finish = second.start + second.duration  # type: ignore[operator]
+            if second.start >= first_finish or first.start >= second_finish:
+                continue
+            if first_writes & (set(second.reads) | set(second.writes)):
+                if (
+                    second.id not in first.dependencies
+                    and first.id not in second.dependencies
+                ):
+                    issues.append(
+                        ValidationIssue(
+                            "task-effect-race",
+                            f"scheduled tasks {first.id} and {second.id} overlap on effects",
+                        )
+                    )
     for phase in sorted(program.communication, key=lambda item: item.id):
         if phase.synchronization not in _VALID_SYNCHRONIZATION:
             issues.append(

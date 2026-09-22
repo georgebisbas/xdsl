@@ -97,3 +97,17 @@ def test_validator_reports_duplicate_and_invalid_communication_phases() -> None:
         "communication-id",
         "communication-synchronization",
     ]
+
+
+def test_validator_reports_shape_and_effect_conflicts() -> None:
+    program = TaskTileProgram(
+        tasks=(
+            Task("writer", 3, start=0, writes=("x",), shape=(8, -1)),
+            Task("reader", 2, start=1, reads=("x",), shape=(8, 8)),
+        )
+    )
+
+    assert [issue.code for issue in validate(program)] == [
+        "task-shape",
+        "task-effect-race",
+    ]

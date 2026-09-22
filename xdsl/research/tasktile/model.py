@@ -14,6 +14,9 @@ class Task:
     engine: Engine = "aic"
     start: int | None = None
     witness: str | None = None
+    reads: tuple[str, ...] = ()
+    writes: tuple[str, ...] = ()
+    shape: tuple[int, ...] = ()
 
 
 @dataclass(frozen=True)
