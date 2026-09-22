@@ -37,7 +37,7 @@ def test_pypto_two_submit_fixture_round_trip_and_mutation_rejection() -> None:
     fixture = Path(__file__).parents[1] / "data/tasktile/pypto-two-submit.json"
     payload = json.loads(fixture.read_text())
     program, source = import_pypto_checkpoint(payload)
-    assert source["pass"] == "task-dependencies"
+    assert source["pass"] == "post:MaterializeValidShapeSymbols"
     assert [task.id for task in program.topological_tasks()] == ["producer", "consumer"]
     assert program.stages[0].buffer == "buf0"
     assert program.buffers[0].slots == 2

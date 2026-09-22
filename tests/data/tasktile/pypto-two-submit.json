@@ -1,8 +1,8 @@
 {
   "source": {
-    "pass": "task-dependencies",
+    "pass": "post:MaterializeValidShapeSymbols",
     "repository": "pypto",
-    "revision": "fixture-rev"
+    "revision": "166bf7ac40924bacf6035b9fea6a0b9bbc08f9db"
   },
   "tasktile": {
     "buffers": [
