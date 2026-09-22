@@ -28,6 +28,7 @@ class TileStage:
     slot: int = 0
     start: int | None = None
     witness: str | None = None
+    bytes: int | None = None
 
 
 @dataclass(frozen=True)

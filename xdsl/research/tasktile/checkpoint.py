@@ -36,6 +36,7 @@ def to_dict(program: TaskTileProgram) -> dict[str, Any]:
                 "slot": x.slot,
                 "start": x.start,
                 "witness": x.witness,
+                "bytes": x.bytes,
             }
             for x in sorted(program.stages, key=lambda x: x.id)
         ],
@@ -93,8 +94,9 @@ def from_dict(data: dict[str, Any]) -> TaskTileProgram:
                     x["duration"],
                     x.get("buffer"),
                     x.get("slot", 0),
-                    x.get("start"),
-                    x.get("witness"),
+                        x.get("start"),
+                        x.get("witness"),
+                        x.get("bytes"),
                 )
                 for x in data.get("stages", ())
             ),

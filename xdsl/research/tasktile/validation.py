@@ -70,6 +70,20 @@ def validate(program: TaskTileProgram) -> tuple[ValidationIssue, ...]:
     for stage in sorted(program.stages, key=lambda item: item.id):
         if stage.buffer is not None:
             buffer = buffers[stage.buffer]
+            if stage.bytes is not None and stage.bytes <= 0:
+                issues.append(
+                    ValidationIssue(
+                        "buffer-capacity",
+                        f"stage {stage.id} has non-positive footprint {stage.bytes}",
+                    )
+                )
+            elif stage.bytes is not None and stage.bytes > buffer.bytes:
+                issues.append(
+                    ValidationIssue(
+                        "buffer-capacity",
+                        f"stage {stage.id} needs {stage.bytes} bytes but buffer {buffer.id} has {buffer.bytes}",
+                    )
+                )
             if stage.slot < 0 or stage.slot >= buffer.slots:
                 issues.append(
                     ValidationIssue(

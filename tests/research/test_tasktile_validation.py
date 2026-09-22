@@ -111,3 +111,13 @@ def test_validator_reports_shape_and_effect_conflicts() -> None:
         "task-shape",
         "task-effect-race",
     ]
+
+
+def test_validator_reports_stage_capacity_overflow() -> None:
+    program = TaskTileProgram(
+        tasks=(Task("load", 2),),
+        stages=(TileStage("stage", "load", 2, "ub", 0, None, None, 2048),),
+        buffers=(Buffer("ub", 1024, 1),),
+    )
+
+    assert [issue.code for issue in validate(program)] == ["buffer-capacity"]
