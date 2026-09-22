@@ -24,6 +24,7 @@ def to_dict(program: TaskTileProgram) -> dict[str, Any]:
                 "reads": list(x.reads),
                 "writes": list(x.writes),
                 "shape": list(x.shape),
+                "generated_witness": x.generated_witness,
             }
             for x in sorted(program.tasks, key=lambda x: x.id)
         ],
@@ -37,6 +38,7 @@ def to_dict(program: TaskTileProgram) -> dict[str, Any]:
                 "start": x.start,
                 "witness": x.witness,
                 "bytes": x.bytes,
+                "generated_witness": x.generated_witness,
             }
             for x in sorted(program.stages, key=lambda x: x.id)
         ],
@@ -47,6 +49,7 @@ def to_dict(program: TaskTileProgram) -> dict[str, Any]:
                 "slots": x.slots,
                 "memory_space": x.memory_space,
                 "witness": x.witness,
+                "generated_witness": x.generated_witness,
             }
             for x in sorted(program.buffers, key=lambda x: x.id)
         ],
@@ -58,6 +61,7 @@ def to_dict(program: TaskTileProgram) -> dict[str, Any]:
                 "bytes": x.bytes,
                 "synchronization": x.synchronization,
                 "witness": x.witness,
+                "generated_witness": x.generated_witness,
             }
             for x in sorted(program.communication, key=lambda x: x.id)
         ],
@@ -84,6 +88,7 @@ def from_dict(data: dict[str, Any]) -> TaskTileProgram:
                     tuple(x.get("reads", ())),
                     tuple(x.get("writes", ())),
                     tuple(x.get("shape", ())),
+                    x.get("generated_witness"),
                 )
                 for x in data["tasks"]
             ),
@@ -94,9 +99,10 @@ def from_dict(data: dict[str, Any]) -> TaskTileProgram:
                     x["duration"],
                     x.get("buffer"),
                     x.get("slot", 0),
-                        x.get("start"),
-                        x.get("witness"),
-                        x.get("bytes"),
+                    x.get("start"),
+                    x.get("witness"),
+                    x.get("bytes"),
+                    x.get("generated_witness"),
                 )
                 for x in data.get("stages", ())
             ),
@@ -107,6 +113,7 @@ def from_dict(data: dict[str, Any]) -> TaskTileProgram:
                     x.get("slots", 1),
                     x.get("memory_space", "ub"),
                     x.get("witness"),
+                    x.get("generated_witness"),
                 )
                 for x in data.get("buffers", ())
             ),
@@ -118,6 +125,7 @@ def from_dict(data: dict[str, Any]) -> TaskTileProgram:
                     x["bytes"],
                     x.get("synchronization", "fifo"),
                     x.get("witness"),
+                    x.get("generated_witness"),
                 )
                 for x in data.get("communication", ())
             ),

@@ -17,6 +17,7 @@ class Task:
     reads: tuple[str, ...] = ()
     writes: tuple[str, ...] = ()
     shape: tuple[int, ...] = ()
+    generated_witness: str | None = None
 
 
 @dataclass(frozen=True)
@@ -29,6 +30,7 @@ class TileStage:
     start: int | None = None
     witness: str | None = None
     bytes: int | None = None
+    generated_witness: str | None = None
 
 
 @dataclass(frozen=True)
@@ -38,6 +40,7 @@ class Buffer:
     slots: int = 1
     memory_space: str = "ub"
     witness: str | None = None
+    generated_witness: str | None = None
 
 
 @dataclass(frozen=True)
@@ -48,6 +51,7 @@ class CommPhase:
     bytes: int
     synchronization: str = "fifo"
     witness: str | None = None
+    generated_witness: str | None = None
 
 
 @dataclass(frozen=True)
