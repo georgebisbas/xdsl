@@ -3,6 +3,7 @@ import json
 from xdsl.research.tasktile.experiment import (
     dump_synthetic_experiment,
     run_synthetic_experiment,
+    summarize_synthetic_experiment,
 )
 
 
@@ -20,3 +21,14 @@ def test_synthetic_experiment_is_deterministic_and_complete() -> None:
 def test_synthetic_experiment_json_is_valid() -> None:
     payload = dump_synthetic_experiment()
     assert len(json.loads(payload)) == 20
+
+
+def test_synthetic_summary_is_table_ready() -> None:
+    summary = summarize_synthetic_experiment()
+    assert [row["workload"] for row in summary] == [
+        "overlap",
+        "independent",
+        "fanout",
+        "collective",
+    ]
+    assert all(row["joint_gap_vs_oracle"] >= 0 for row in summary)

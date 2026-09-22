@@ -102,6 +102,32 @@ def dump_synthetic_experiment(config: ReplayConfig | None = None) -> str:
     return json.dumps(run_synthetic_experiment(config), indent=2, sort_keys=True) + "\n"
 
 
+def summarize_synthetic_experiment(
+    config: ReplayConfig | None = None,
+) -> list[dict[str, Any]]:
+    """Return deterministic per-workload deltas for paper table generation."""
+    rows = run_synthetic_experiment(config)
+    grouped: dict[str, dict[str, dict[str, Any]]] = {}
+    for row in rows:
+        grouped.setdefault(row["workload"], {})[row["variant"]] = row["metrics"]
+    summary: list[dict[str, Any]] = []
+    for workload, variants in grouped.items():
+        native = variants["native"]["critical_path"]
+        joint = variants["joint"]["critical_path"]
+        oracle = variants.get("oracle", variants["joint"])["critical_path"]
+        summary.append(
+            {
+                "workload": workload,
+                "native_critical_path": native,
+                "joint_critical_path": joint,
+                "oracle_critical_path": oracle,
+                "joint_delta_vs_native": joint - native,
+                "joint_gap_vs_oracle": joint - oracle,
+            }
+        )
+    return summary
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Run the deterministic TaskTile replay experiment"
