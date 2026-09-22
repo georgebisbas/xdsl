@@ -75,3 +75,17 @@ def test_generated_fanout_fixture_preserves_shared_resources() -> None:
     ]
     assert program.buffers[0].slots == 2
     assert program.communication[0].ranks == (0, 1, 2, 3)
+
+
+def test_pypto_adapter_rejects_illegal_scheduled_checkpoint() -> None:
+    program = TaskTileProgram(
+        tasks=(
+            Task("producer", 2, start=2),
+            Task("consumer", 1, ("producer",), start=0),
+        )
+    )
+
+    with pytest.raises(ValueError, match="task-dependency-order"):
+        export_pypto_checkpoint(
+            program, repository="pypto", revision="abc123", pass_name="LowerTasks"
+        )

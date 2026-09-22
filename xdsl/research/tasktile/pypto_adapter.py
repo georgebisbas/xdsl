@@ -6,6 +6,7 @@ from typing import Any, cast
 
 from .checkpoint import from_dict, to_dict
 from .model import TaskTileProgram
+from .validation import assert_legal
 
 
 def import_pypto_checkpoint(
@@ -30,7 +31,9 @@ def import_pypto_checkpoint(
     tasktile = data.get("tasktile")
     if not isinstance(tasktile, dict):
         raise ValueError("PyPTO checkpoint requires a tasktile object")
-    return from_dict(cast(dict[str, Any], tasktile)), {key: source[key] for key in required}
+    program = from_dict(cast(dict[str, Any], tasktile))
+    assert_legal(program)
+    return program, {key: source[key] for key in required}
 
 
 def export_pypto_checkpoint(
@@ -39,6 +42,7 @@ def export_pypto_checkpoint(
     """Wrap a TaskTile program with the provenance a native exporter must emit."""
     if not repository or not revision or not pass_name:
         raise ValueError("PyPTO checkpoint provenance fields must be non-empty")
+    assert_legal(program)
     return {
         "source": {"repository": repository, "revision": revision, "pass": pass_name},
         "tasktile": to_dict(program),
