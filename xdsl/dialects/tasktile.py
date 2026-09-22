@@ -127,4 +127,4 @@ class CommOp(IRDLOperation):
             raise VerifyException("tasktile.comm bytes must be non-negative")
 
 
-TaskTile = Dialect([ProgramOp, TaskOp, BufferOp, CommOp], [])
+TaskTile = Dialect("tasktile", [ProgramOp, TaskOp, BufferOp, CommOp], [])
