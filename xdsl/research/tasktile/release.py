@@ -6,7 +6,11 @@ import argparse
 import json
 from pathlib import Path
 
-from .experiment import dump_synthetic_experiment, summarize_synthetic_experiment
+from .experiment import (
+    dump_constraint_ablations,
+    dump_synthetic_experiment,
+    summarize_synthetic_experiment,
+)
 from .manifest import ArtifactManifest
 from .manifest import dumps as dump_manifest
 from .replay import ReplayConfig
@@ -26,12 +30,14 @@ def create_artifact(
     results_path = output / "tasktile-results.json"
     manifest_path = output / "manifest.json"
     summary_path = output / "tasktile-summary.json"
+    ablations_path = output / "tasktile-ablations.json"
     results_path.write_text(dump_synthetic_experiment(config), encoding="utf-8")
     summary_path.write_text(
         json.dumps(summarize_synthetic_experiment(config), indent=2, sort_keys=True)
         + "\n",
         encoding="utf-8",
     )
+    ablations_path.write_text(dump_constraint_ablations(config), encoding="utf-8")
     manifest_path.write_text(
         dump_manifest(
             ArtifactManifest(

@@ -12,6 +12,9 @@ def test_release_writes_results_and_manifest(tmp_path) -> None:
     assert results.exists()
     assert manifest.exists()
     assert summary.exists()
+    ablations = tmp_path / "tasktile-ablations.json"
+    assert ablations.exists()
+    assert len(json.loads(ablations.read_text())) == 15
     assert len(json.loads(results.read_text())) == 25
     summary_rows = json.loads(summary.read_text())
     assert len(summary_rows) == 5
