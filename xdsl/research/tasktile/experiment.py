@@ -65,6 +65,24 @@ def synthetic_corpus() -> tuple[tuple[str, TaskTileProgram], ...]:
                 ),
             ),
         ),
+        (
+            "contention",
+            TaskTileProgram(
+                tasks=(
+                    Task("root", 2, engine="mte"),
+                    Task("a", 5, ("root",), engine="aic"),
+                    Task("b", 4, ("root",), engine="aic"),
+                    Task("c", 3, ("root",), engine="aiv"),
+                    Task("join", 2, ("a", "b", "c"), engine="aic"),
+                ),
+                buffers=(Buffer("single-slot", 4096, 1),),
+                stages=(
+                    TileStage("a-stage", "a", 5, "single-slot"),
+                    TileStage("b-stage", "b", 4, "single-slot"),
+                    TileStage("c-stage", "c", 3, "single-slot"),
+                ),
+            ),
+        ),
     )
 
 
