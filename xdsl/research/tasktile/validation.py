@@ -8,6 +8,7 @@ from itertools import pairwise
 from .model import TaskTileProgram
 
 _VALID_ENGINES = {"aic", "aiv", "mte", "aicpu"}
+_VALID_SYNCHRONIZATION = {"fifo", "barrier", "collective"}
 
 
 @dataclass(frozen=True)
@@ -106,7 +107,22 @@ def validate(program: TaskTileProgram) -> tuple[ValidationIssue, ...]:
                     )
                 )
 
+    communication_ids = [phase.id for phase in program.communication]
+    for phase_id in sorted(set(communication_ids)):
+        if communication_ids.count(phase_id) > 1:
+            issues.append(
+                ValidationIssue(
+                    "communication-id", f"communication phase {phase_id} is duplicated"
+                )
+            )
     for phase in sorted(program.communication, key=lambda item: item.id):
+        if phase.synchronization not in _VALID_SYNCHRONIZATION:
+            issues.append(
+                ValidationIssue(
+                    "communication-synchronization",
+                    f"communication phase {phase.id} uses unknown synchronization {phase.synchronization}",
+                )
+            )
         if len(set(phase.ranks)) != len(phase.ranks) or any(
             rank < 0 for rank in phase.ranks
         ):

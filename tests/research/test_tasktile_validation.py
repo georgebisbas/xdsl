@@ -82,3 +82,18 @@ def test_validator_reports_invalid_engine_and_collective_ranks() -> None:
         "task-engine",
         "communication-ranks",
     ]
+
+
+def test_validator_reports_duplicate_and_invalid_communication_phases() -> None:
+    program = TaskTileProgram(
+        tasks=(Task("communicate", 1),),
+        communication=(
+            CommPhase("phase", "communicate", (0, 1), 4, "fifo"),
+            CommPhase("phase", "communicate", (0, 1), 4, "unknown"),
+        ),
+    )
+
+    assert [issue.code for issue in validate(program)] == [
+        "communication-id",
+        "communication-synchronization",
+    ]
