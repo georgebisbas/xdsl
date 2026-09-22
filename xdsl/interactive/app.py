@@ -162,6 +162,9 @@ class InputApp(App[None]):
         self.pre_loaded_pass_pipeline = pass_pipeline
 
         super().__init__()
+        # Textual versions supported by xDSL do not all initialize an app-level
+        # theme attribute; keep the action's state explicit and deterministic.
+        self.theme = "textual-dark"
 
     def compose(self) -> ComposeResult:
         """
