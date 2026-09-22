@@ -9,6 +9,7 @@ from xdsl.research.tasktile import (
     TileStage,
     heuristic_gap,
     replay,
+    replay_trace,
     schedule_joint,
     schedule_task_only,
     schedule_tile_only,
@@ -91,3 +92,21 @@ def test_replay_calibration_changes_only_calibrated_cost() -> None:
     assert (
         replay(program, ReplayConfig(transfer_cost_per_byte=0.5)).transfer_time == 4.0
     )
+
+
+def test_replay_trace_explains_task_stage_and_communication() -> None:
+    program = TaskTileProgram(
+        tasks=(Task("a", 2, start=3),),
+        stages=(TileStage("stage", "a", 1, "ub", 0, 3),),
+        buffers=(Buffer("ub", 8),),
+        communication=(CommPhase("phase", "a", (0, 1), 4),),
+    )
+
+    events = replay_trace(program)
+
+    assert [(event.kind, event.identifier) for event in events] == [
+        ("communication", "phase"),
+        ("stage", "stage"),
+        ("task", "a"),
+    ]
+    assert events[-1].detail == "dependencies=none"

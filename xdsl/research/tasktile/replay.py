@@ -6,6 +6,17 @@ from .model import TaskTileProgram
 
 
 @dataclass(frozen=True)
+class ReplayEvent:
+    """A deterministic event explaining one replayed schedule decision."""
+
+    kind: str
+    identifier: str
+    start: int
+    finish: int
+    detail: str
+
+
+@dataclass(frozen=True)
 class ReplayCost:
     critical_path: int
     synchronization_stall: int
@@ -62,4 +73,55 @@ def replay(program: TaskTileProgram, config: ReplayConfig | None = None) -> Repl
             )
         ),
         transfer_time=phase_bytes * config.transfer_cost_per_byte,
+    )
+
+
+def replay_trace(program: TaskTileProgram) -> tuple[ReplayEvent, ...]:
+    """Return deterministic task, stage, and communication replay events."""
+    finish: dict[str, int] = {}
+    events: list[ReplayEvent] = []
+    for task in program.topological_tasks():
+        start = (
+            task.start
+            if task.start is not None
+            else max((finish[dep] for dep in task.dependencies), default=0)
+        )
+        task_finish = start + task.duration
+        finish[task.id] = task_finish
+        dependencies = ",".join(sorted(task.dependencies)) or "none"
+        events.append(
+            ReplayEvent(
+                "task", task.id, start, task_finish, f"dependencies={dependencies}"
+            )
+        )
+    tasks = {task.id: task for task in program.tasks}
+    for stage in sorted(program.stages, key=lambda item: item.id):
+        start = (
+            stage.start
+            if stage.start is not None
+            else (tasks[stage.task].start if tasks[stage.task].start is not None else 0)
+        )
+        events.append(
+            ReplayEvent(
+                "stage",
+                stage.id,
+                start,
+                start + stage.duration,
+                f"task={stage.task},buffer={stage.buffer},slot={stage.slot}",
+            )
+        )
+    for phase in sorted(program.communication, key=lambda item: item.id):
+        task = tasks[phase.task]
+        start = task.start if task.start is not None else 0
+        events.append(
+            ReplayEvent(
+                "communication",
+                phase.id,
+                start,
+                start + task.duration,
+                f"task={phase.task},ranks={','.join(map(str, phase.ranks))},bytes={phase.bytes}",
+            )
+        )
+    return tuple(
+        sorted(events, key=lambda event: (event.start, event.kind, event.identifier))
     )

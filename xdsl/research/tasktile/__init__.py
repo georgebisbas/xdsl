@@ -3,7 +3,7 @@
 from .checkpoint import dumps, loads
 from .model import Buffer, CommPhase, Task, TaskTileProgram, TileStage
 from .pypto_adapter import export_pypto_checkpoint, import_pypto_checkpoint
-from .replay import ReplayConfig, ReplayCost, replay
+from .replay import ReplayConfig, ReplayCost, ReplayEvent, replay, replay_trace
 from .schedule import (
     heuristic_gap,
     oracle_schedule,
@@ -18,6 +18,7 @@ __all__ = [
     "CommPhase",
     "ReplayConfig",
     "ReplayCost",
+    "ReplayEvent",
     "Task",
     "TaskTileProgram",
     "TileStage",
@@ -30,6 +31,7 @@ __all__ = [
     "loads",
     "oracle_schedule",
     "replay",
+    "replay_trace",
     "schedule_joint",
     "schedule_task_only",
     "schedule_tile_only",
