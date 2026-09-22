@@ -146,3 +146,16 @@ def test_validator_reports_inconsistent_collective_rank_sets() -> None:
     assert [issue.code for issue in validate(program)] == [
         "collective-ranks",
     ]
+
+
+def test_validator_allows_unordered_reduction_and_atomic_effects() -> None:
+    program = TaskTileProgram(
+        tasks=(
+            Task("reduce-a", 2, reductions=("sum",)),
+            Task("reduce-b", 2, reductions=("sum",)),
+            Task("atomic-a", 1, atomics=("counter",)),
+            Task("atomic-b", 1, atomics=("counter",)),
+        )
+    )
+
+    assert validate(program) == ()

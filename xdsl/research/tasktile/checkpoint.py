@@ -25,6 +25,8 @@ def to_dict(program: TaskTileProgram) -> dict[str, Any]:
                 "writes": list(x.writes),
                 "shape": list(x.shape),
                 "generated_witness": x.generated_witness,
+                "reductions": list(x.reductions),
+                "atomics": list(x.atomics),
             }
             for x in sorted(program.tasks, key=lambda x: x.id)
         ],
@@ -89,6 +91,8 @@ def from_dict(data: dict[str, Any]) -> TaskTileProgram:
                     tuple(x.get("writes", ())),
                     tuple(x.get("shape", ())),
                     x.get("generated_witness"),
+                    tuple(x.get("reductions", ())),
+                    tuple(x.get("atomics", ())),
                 )
                 for x in data["tasks"]
             ),

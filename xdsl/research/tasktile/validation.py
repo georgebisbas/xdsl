@@ -152,13 +152,28 @@ def validate(program: TaskTileProgram) -> tuple[ValidationIssue, ...]:
         return False
 
     for first in sorted(program.tasks, key=lambda item: item.id):
-        first_writes = set(first.writes)
+        first_writes = set(first.writes) | set(first.reductions) | set(first.atomics)
         if not first_writes:
             continue
         for second in sorted(program.tasks, key=lambda item: item.id):
             if first.id == second.id:
                 continue
-            if not first_writes & (set(second.reads) | set(second.writes)):
+            second_effects = (
+                set(second.reads)
+                | set(second.writes)
+                | set(second.reductions)
+                | set(second.atomics)
+            )
+            if not first_writes & second_effects:
+                continue
+            shared_order_insensitive = first_writes & (
+                set(second.reductions) | set(second.atomics)
+            )
+            if (
+                shared_order_insensitive
+                and first_writes <= (set(first.reductions) | set(first.atomics))
+                and first_writes <= (set(second.reductions) | set(second.atomics))
+            ):
                 continue
             if (
                 first.start is None
@@ -179,7 +194,13 @@ def validate(program: TaskTileProgram) -> tuple[ValidationIssue, ...]:
             second_finish = second.start + second.duration  # type: ignore[operator]
             if second.start >= first_finish or first.start >= second_finish:
                 continue
-            if first_writes & (set(second.reads) | set(second.writes)):
+            second_effects = (
+                set(second.reads)
+                | set(second.writes)
+                | set(second.reductions)
+                | set(second.atomics)
+            )
+            if first_writes & second_effects:
                 if (
                     second.id not in first.dependencies
                     and first.id not in second.dependencies

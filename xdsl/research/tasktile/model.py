@@ -18,6 +18,8 @@ class Task:
     writes: tuple[str, ...] = ()
     shape: tuple[int, ...] = ()
     generated_witness: str | None = None
+    reductions: tuple[str, ...] = ()
+    atomics: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
