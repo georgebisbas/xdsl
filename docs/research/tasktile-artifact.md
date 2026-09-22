@@ -117,11 +117,13 @@ For a self-contained artifact directory, run:
 
 ```bash
 PYTHONPATH=. python3 -m xdsl.research.tasktile.release artifacts/local \
-  --xdsl-revision <git-revision> --hardware unavailable
+  --xdsl-revision <git-revision> --hardware unavailable \
+  --simulation-image pypto3-hw-native-sys:sim-xdsl-tasktile@sha256:<digest>
 ```
 
 The command writes `tasktile-results.json`, `tasktile-summary.json`, and
-`manifest.json` together. The summary is a table-ready projection of
+`manifest.json` together. The manifest records the exact simulation image when
+provided. The summary is a table-ready projection of
 native/joint/oracle critical paths and exhaustive-search diagnostics.
 
 It is also runnable as a module:

@@ -19,6 +19,7 @@ def create_artifact(
     pypto_revision: str | None = None,
     config: ReplayConfig | None = None,
     hardware: str = "unavailable",
+    simulation_image: str | None = None,
 ) -> tuple[Path, Path, Path]:
     output.mkdir(parents=True, exist_ok=True)
     config = config or ReplayConfig()
@@ -38,6 +39,7 @@ def create_artifact(
                 pypto_revision,
                 replay_config=config,
                 hardware=hardware,
+                simulation_image=simulation_image,
                 test_command="PYTHONPATH=. pytest",
             )
         ),
@@ -56,6 +58,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--sync-cost", type=int, default=1)
     parser.add_argument("--transfer-cost-per-byte", type=float, default=0.0)
     parser.add_argument("--hardware", default="unavailable")
+    parser.add_argument("--simulation-image")
     args = parser.parse_args(argv)
     create_artifact(
         args.output,
@@ -63,6 +66,7 @@ def main(argv: list[str] | None = None) -> int:
         pypto_revision=args.pypto_revision,
         config=ReplayConfig(args.sync_cost, args.transfer_cost_per_byte),
         hardware=args.hardware,
+        simulation_image=args.simulation_image,
     )
     return 0
 

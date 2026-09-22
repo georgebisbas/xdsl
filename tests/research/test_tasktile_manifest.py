@@ -8,7 +8,8 @@ from xdsl.research.tasktile.replay import ReplayConfig
 
 def test_manifest_is_deterministic_and_records_calibration() -> None:
     manifest = ArtifactManifest(
-        "xdsl123", "pypto456", replay_config=ReplayConfig(3, 0.5)
+        "xdsl123", "pypto456", replay_config=ReplayConfig(3, 0.5),
+        simulation_image="pypto3-hw-native-sys:sim-xdsl-tasktile@sha256:test",
     )
     payload = dumps(manifest)
     data = json.loads(payload)
@@ -17,6 +18,7 @@ def test_manifest_is_deterministic_and_records_calibration() -> None:
         "synchronization_cost": 3,
         "transfer_cost_per_byte": 0.5,
     }
+    assert data["simulation_image"].endswith("sha256:test")
     assert dumps(manifest) == payload
 
 

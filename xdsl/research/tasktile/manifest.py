@@ -16,6 +16,7 @@ class ArtifactManifest:
     tasktile_schema_version: int = SCHEMA_VERSION
     replay_config: ReplayConfig = field(default_factory=ReplayConfig)
     hardware: str = "unavailable"
+    simulation_image: str | None = None
     test_command: str = "PYTHONPATH=. pytest"
 
     def __post_init__(self) -> None:
