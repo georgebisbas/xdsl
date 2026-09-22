@@ -1,0 +1,58 @@
+{
+  "source": {
+    "pass": "task-dependencies",
+    "repository": "pypto",
+    "revision": "fixture-rev"
+  },
+  "tasktile": {
+    "buffers": [
+      {
+        "bytes": 4096,
+        "id": "buf0",
+        "memory_space": "ub",
+        "slots": 2,
+        "witness": null
+      }
+    ],
+    "communication": [
+      {
+        "bytes": 1024,
+        "id": "comm0",
+        "ranks": [0, 1],
+        "synchronization": "fifo",
+        "task": "producer",
+        "witness": null
+      }
+    ],
+    "schema_version": 1,
+    "stages": [
+      {
+        "buffer": "buf0",
+        "duration": 3,
+        "id": "stage0",
+        "slot": 0,
+        "start": null,
+        "task": "producer",
+        "witness": null
+      }
+    ],
+    "tasks": [
+      {
+        "dependencies": ["producer"],
+        "duration": 11,
+        "engine": "aiv",
+        "id": "consumer",
+        "start": null,
+        "witness": "source:consumer"
+      },
+      {
+        "dependencies": [],
+        "duration": 7,
+        "engine": "aic",
+        "id": "producer",
+        "start": null,
+        "witness": "source:producer"
+      }
+    ]
+  }
+}
