@@ -1,7 +1,7 @@
 import pytest
 
 from xdsl.dialects import get_all_dialects
-from xdsl.dialects.tasktile import BufferOp, CommOp, TaskOp
+from xdsl.dialects.tasktile import BufferOp, CommOp, ProgramOp, TaskOp
 from xdsl.utils.exceptions import VerifyException
 
 
@@ -22,4 +22,6 @@ def test_tasktile_rejects_empty_ranks() -> None:
 
 
 def test_tasktile_is_registered() -> None:
-    assert get_all_dialects()["tasktile"]().operations
+    dialect = get_all_dialects()["tasktile"]()
+    assert dialect.name == "tasktile"
+    assert tuple(dialect.operations) == (ProgramOp, TaskOp, BufferOp, CommOp)
