@@ -135,6 +135,20 @@ def summarize_synthetic_experiment(
         native = variants["native"]["critical_path"]
         joint = variants["joint"]["critical_path"]
         oracle = variants.get("oracle", variants["joint"])["critical_path"]
+        original = next(program for name, program in synthetic_corpus() if name == workload)
+        joint_program = schedule_joint(original)
+        binding_changes = sum(
+            original_task.start != joint_task.start
+            for original_task, joint_task in zip(
+                sorted(original.tasks, key=lambda task: task.id),
+                sorted(joint_program.tasks, key=lambda task: task.id),
+            )
+        ) + sum(
+            original_stage.slot != joint_stage.slot
+            for original_stage, joint_stage in zip(
+                original.stages, joint_program.stages
+            )
+        )
         summary.append(
             {
                 "workload": workload,
@@ -151,6 +165,7 @@ def summarize_synthetic_experiment(
                 "oracle_critical_path": oracle,
                 "joint_delta_vs_native": joint - native,
                 "joint_gap_vs_oracle": joint - oracle,
+                "joint_binding_changes": binding_changes,
             }
         )
     return summary
