@@ -126,6 +126,12 @@ The command writes `tasktile-results.json`, `tasktile-summary.json`, and
 provided. The summary is a table-ready projection of
 native/joint/oracle critical paths and exhaustive-search diagnostics.
 
+The artifact follows this checkout's xDSL license. PyPTO, PTOAS, and Ascend
+runtime/firmware materials remain separately licensed vendor components; this
+artifact does not redistribute them. Hardware results must therefore be
+collected in an authorized environment and are not implied by the simulation
+image or generated PTO files.
+
 It is also runnable as a module:
 
 ```bash
