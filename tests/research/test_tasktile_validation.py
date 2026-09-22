@@ -2,6 +2,7 @@ import pytest
 
 from xdsl.research.tasktile import (
     Buffer,
+    CommPhase,
     Task,
     TaskTileProgram,
     TileStage,
@@ -50,3 +51,34 @@ def test_assert_legal_exposes_all_violations() -> None:
 
     with pytest.raises(ValueError, match=r"task-start-negative.*buffer-slot-range"):
         assert_legal(program)
+
+
+def test_validator_reports_overlapping_stages_on_one_slot() -> None:
+    program = TaskTileProgram(
+        tasks=(Task("a", 4, start=0), Task("b", 4, start=1)),
+        stages=(
+            TileStage("a-stage", "a", 4, "ub", 0, 0),
+            TileStage("b-stage", "b", 4, "ub", 0, 1),
+        ),
+        buffers=(Buffer("ub", 1024, 1),),
+    )
+
+    assert [issue.code for issue in validate(program)] == ["buffer-slot-overlap"]
+
+
+def test_validator_reports_invalid_engine_and_collective_ranks() -> None:
+    program = TaskTileProgram(
+        tasks=(Task("communicate", 1, engine="invalid"),),  # type: ignore[arg-type]
+        communication=(),
+    )
+    # Build a valid object first, then mutate only the runtime-facing metadata.
+    from dataclasses import replace
+
+    program = replace(
+        program, communication=(CommPhase("phase", "communicate", (0, 0), 4),)
+    )
+
+    assert [issue.code for issue in validate(program)] == [
+        "task-engine",
+        "communication-ranks",
+    ]
