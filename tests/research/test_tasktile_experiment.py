@@ -32,3 +32,5 @@ def test_synthetic_summary_is_table_ready() -> None:
         "collective",
     ]
     assert all(row["joint_gap_vs_oracle"] >= 0 for row in summary)
+    assert all(row["oracle_candidates"] > 0 for row in summary)
+    assert all(row["heuristic_gap"] >= 1.0 for row in summary)

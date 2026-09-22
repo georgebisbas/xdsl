@@ -10,6 +10,8 @@ from typing import Any
 from .model import Buffer, CommPhase, Task, TaskTileProgram, TileStage
 from .replay import ReplayConfig, replay
 from .schedule import (
+    enumerate_small_programs,
+    heuristic_gap,
     oracle_schedule,
     schedule_joint,
     schedule_task_only,
@@ -118,6 +120,14 @@ def summarize_synthetic_experiment(
         summary.append(
             {
                 "workload": workload,
+                "oracle_candidates": len(
+                    enumerate_small_programs(
+                        next(program for name, program in synthetic_corpus() if name == workload)
+                    )
+                ),
+                "heuristic_gap": heuristic_gap(
+                    next(program for name, program in synthetic_corpus() if name == workload)
+                ),
                 "native_critical_path": native,
                 "joint_critical_path": joint,
                 "oracle_critical_path": oracle,
