@@ -35,6 +35,34 @@ def synthetic_corpus() -> tuple[tuple[str, TaskTileProgram], ...]:
                 tasks=(Task("a", 2, engine="aic"), Task("b", 4, engine="aiv"))
             ),
         ),
+        (
+            "fanout",
+            TaskTileProgram(
+                tasks=(
+                    Task("load", 2, engine="mte"),
+                    Task("left", 3, ("load",), engine="aic"),
+                    Task("right", 4, ("load",), engine="aiv"),
+                ),
+                buffers=(Buffer("shared", 2048, 2),),
+                stages=(
+                    TileStage("left-stage", "left", 3, "shared"),
+                    TileStage("right-stage", "right", 4, "shared", slot=1),
+                ),
+            ),
+        ),
+        (
+            "collective",
+            TaskTileProgram(
+                tasks=(
+                    Task("produce", 2, engine="aic"),
+                    Task("exchange", 2, ("produce",), engine="mte"),
+                    Task("consume", 3, ("exchange",), engine="aiv"),
+                ),
+                communication=(
+                    CommPhase("allgather", "exchange", (0, 1, 2, 3), 8192),
+                ),
+            ),
+        ),
     )
 
 
