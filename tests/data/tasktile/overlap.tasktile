@@ -1,0 +1,5 @@
+task load duration=2 engine=mte
+task compute duration=3 depends=load engine=aic
+buffer ub bytes=1024 slots=2 space=ub
+stage load_stage task=load buffer=ub duration=2
+comm phase task=compute ranks=0,1 bytes=4096 sync=fifo

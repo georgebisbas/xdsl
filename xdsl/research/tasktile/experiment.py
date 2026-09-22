@@ -1,0 +1,94 @@
+"""Deterministic, hardware-independent TaskTile experiment harness."""
+
+from __future__ import annotations
+
+import argparse
+import json
+from dataclasses import asdict
+from typing import Any
+
+from .model import Buffer, CommPhase, Task, TaskTileProgram, TileStage
+from .replay import ReplayConfig, replay
+from .schedule import (
+    oracle_schedule,
+    schedule_joint,
+    schedule_task_only,
+    schedule_tile_only,
+)
+
+
+def synthetic_corpus() -> tuple[tuple[str, TaskTileProgram], ...]:
+    """Return small workload classes used to validate the intervention matrix."""
+    return (
+        (
+            "overlap",
+            TaskTileProgram(
+                tasks=(Task("load", 2, engine="mte"), Task("compute", 3, ("load",))),
+                buffers=(Buffer("ub", 1024, 2),),
+                stages=(TileStage("load-stage", "load", 2, "ub"),),
+                communication=(CommPhase("phase", "compute", (0, 1), 4096),),
+            ),
+        ),
+        (
+            "independent",
+            TaskTileProgram(
+                tasks=(Task("a", 2, engine="aic"), Task("b", 4, engine="aiv"))
+            ),
+        ),
+    )
+
+
+def _metrics(program: TaskTileProgram, config: ReplayConfig) -> dict[str, Any]:
+    cost = replay(program, config)
+    return asdict(cost)
+
+
+def run_synthetic_experiment(
+    config: ReplayConfig | None = None,
+) -> list[dict[str, Any]]:
+    """Evaluate all scheduling variants on the deterministic synthetic corpus."""
+    config = config or ReplayConfig()
+    results: list[dict[str, Any]] = []
+    for name, program in synthetic_corpus():
+        variants = {
+            "native": program,
+            "task_only": schedule_task_only(program),
+            "tile_only": schedule_tile_only(program),
+            "joint": schedule_joint(program),
+        }
+        oracle = oracle_schedule(program)
+        if oracle is not None:
+            variants["oracle"] = oracle[0]
+        for variant, scheduled in variants.items():
+            results.append(
+                {
+                    "workload": name,
+                    "variant": variant,
+                    "metrics": _metrics(scheduled, config),
+                }
+            )
+    return results
+
+
+def dump_synthetic_experiment(config: ReplayConfig | None = None) -> str:
+    return json.dumps(run_synthetic_experiment(config), indent=2, sort_keys=True) + "\n"
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        description="Run the deterministic TaskTile replay experiment"
+    )
+    parser.add_argument("--sync-cost", type=int, default=1)
+    parser.add_argument("--transfer-cost-per-byte", type=float, default=0.0)
+    args = parser.parse_args(argv)
+    print(
+        dump_synthetic_experiment(
+            ReplayConfig(args.sync_cost, args.transfer_cost_per_byte)
+        ),
+        end="",
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

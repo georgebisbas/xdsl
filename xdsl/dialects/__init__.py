@@ -348,6 +348,11 @@ def get_all_dialects() -> dict[str, Callable[[], Dialect]]:
 
         return Tensor
 
+    def get_tasktile():
+        from xdsl.dialects.tasktile import TaskTile
+
+        return TaskTile
+
     def get_test():
         from xdsl.dialects.test import Test
 
@@ -472,6 +477,7 @@ def get_all_dialects() -> dict[str, Callable[[], Dialect]]:
         "stencil": get_stencil,
         "symref": get_symref,
         "tensor": get_tensor,
+        "tasktile": get_tasktile,
         "test": get_test,
         "tosa": get_tosa,
         "ub": get_ub,
