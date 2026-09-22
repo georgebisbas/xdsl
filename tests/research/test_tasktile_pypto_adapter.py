@@ -63,7 +63,7 @@ def test_generated_fanout_fixture_preserves_shared_resources() -> None:
     fixture = Path(__file__).parents[1] / "data/tasktile/pypto-fanout-generated.json"
     payload = json.loads(fixture.read_text())
     program, source = import_pypto_checkpoint(payload)
-    assert source["revision"].startswith("166bf7")
+    assert source["revision"] == "3b866d5ae"
     assert [task.id for task in program.topological_tasks()] == [
         "root",
         "left",

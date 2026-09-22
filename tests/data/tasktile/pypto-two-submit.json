@@ -2,7 +2,7 @@
   "source": {
     "pass": "post:MaterializeValidShapeSymbols",
     "repository": "pypto",
-    "revision": "166bf7ac40924bacf6035b9fea6a0b9bbc08f9db"
+    "revision": "3b866d5ae"
   },
   "tasktile": {
     "buffers": [
