@@ -1,0 +1,75 @@
+{
+  "source": {
+    "pass": "post:MaterializeValidShapeSymbols",
+    "repository": "pypto",
+    "revision": "166bf7ac40924bacf6035b9fea6a0b9bbc08f9db"
+  },
+  "tasktile": {
+    "buffers": [
+      {
+        "bytes": 2048,
+        "id": "shared",
+        "memory_space": "ub",
+        "slots": 2,
+        "witness": null
+      }
+    ],
+    "communication": [
+      {
+        "bytes": 8192,
+        "id": "allgather",
+        "ranks": [0, 1, 2, 3],
+        "synchronization": "fifo",
+        "task": "right",
+        "witness": null
+      }
+    ],
+    "schema_version": 1,
+    "stages": [
+      {
+        "buffer": "shared",
+        "duration": 3,
+        "id": "left-stage",
+        "slot": 0,
+        "start": null,
+        "task": "left",
+        "witness": null
+      },
+      {
+        "buffer": "shared",
+        "duration": 4,
+        "id": "right-stage",
+        "slot": 1,
+        "start": null,
+        "task": "right",
+        "witness": null
+      }
+    ],
+    "tasks": [
+      {
+        "dependencies": ["root"],
+        "duration": 3,
+        "engine": "aic",
+        "id": "left",
+        "start": null,
+        "witness": null
+      },
+      {
+        "dependencies": ["root"],
+        "duration": 4,
+        "engine": "aiv",
+        "id": "right",
+        "start": null,
+        "witness": null
+      },
+      {
+        "dependencies": [],
+        "duration": 2,
+        "engine": "mte",
+        "id": "root",
+        "start": null,
+        "witness": null
+      }
+    ]
+  }
+}

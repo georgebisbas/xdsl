@@ -57,3 +57,21 @@ def test_pypto_two_submit_fixture_round_trip_and_mutation_rejection() -> None:
     bad_ranks["tasktile"]["communication"][0]["ranks"] = []
     with pytest.raises(ValueError, match="invalid communication"):
         import_pypto_checkpoint(bad_ranks)
+
+
+def test_generated_fanout_fixture_preserves_shared_resources() -> None:
+    fixture = Path(__file__).parents[1] / "data/tasktile/pypto-fanout-generated.json"
+    payload = json.loads(fixture.read_text())
+    program, source = import_pypto_checkpoint(payload)
+    assert source["revision"].startswith("166bf7")
+    assert [task.id for task in program.topological_tasks()] == [
+        "root",
+        "left",
+        "right",
+    ]
+    assert [(stage.id, stage.slot) for stage in program.stages] == [
+        ("left-stage", 0),
+        ("right-stage", 1),
+    ]
+    assert program.buffers[0].slots == 2
+    assert program.communication[0].ranks == (0, 1, 2, 3)
