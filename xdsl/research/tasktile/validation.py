@@ -32,6 +32,22 @@ def validate(program: TaskTileProgram) -> tuple[ValidationIssue, ...]:
     issues: list[ValidationIssue] = []
     tasks = {task.id: task for task in program.tasks}
     buffers = {buffer.id: buffer for buffer in program.buffers}
+    parent: dict[str, str] = {}
+
+    def find(name: str) -> str:
+        parent.setdefault(name, name)
+        while parent[name] != name:
+            parent[name] = parent[parent[name]]
+            name = parent[name]
+        return name
+
+    for left, right in sorted(program.aliases):
+        left_root, right_root = find(left), find(right)
+        if left_root != right_root:
+            parent[right_root] = left_root
+
+    def resources(values: tuple[str, ...]) -> set[str]:
+        return {find(value) for value in values}
 
     for task in sorted(program.tasks, key=lambda item: item.id):
         if task.engine not in _VALID_ENGINES:
@@ -152,27 +168,27 @@ def validate(program: TaskTileProgram) -> tuple[ValidationIssue, ...]:
         return False
 
     for first in sorted(program.tasks, key=lambda item: item.id):
-        first_writes = set(first.writes) | set(first.reductions) | set(first.atomics)
+        first_writes = resources(first.writes + first.reductions + first.atomics)
         if not first_writes:
             continue
         for second in sorted(program.tasks, key=lambda item: item.id):
             if first.id == second.id:
                 continue
             second_effects = (
-                set(second.reads)
-                | set(second.writes)
-                | set(second.reductions)
-                | set(second.atomics)
+                resources(second.reads)
+                | resources(second.writes)
+                | resources(second.reductions)
+                | resources(second.atomics)
             )
             if not first_writes & second_effects:
                 continue
             shared_order_insensitive = first_writes & (
-                set(second.reductions) | set(second.atomics)
+                resources(second.reductions) | resources(second.atomics)
             )
             if (
                 shared_order_insensitive
-                and first_writes <= (set(first.reductions) | set(first.atomics))
-                and first_writes <= (set(second.reductions) | set(second.atomics))
+                and first_writes <= resources(first.reductions + first.atomics)
+                and first_writes <= resources(second.reductions + second.atomics)
             ):
                 continue
             if (
@@ -195,10 +211,10 @@ def validate(program: TaskTileProgram) -> tuple[ValidationIssue, ...]:
             if second.start >= first_finish or first.start >= second_finish:
                 continue
             second_effects = (
-                set(second.reads)
-                | set(second.writes)
-                | set(second.reductions)
-                | set(second.atomics)
+                resources(second.reads)
+                | resources(second.writes)
+                | resources(second.reductions)
+                | resources(second.atomics)
             )
             if first_writes & second_effects:
                 if (

@@ -159,3 +159,15 @@ def test_validator_allows_unordered_reduction_and_atomic_effects() -> None:
     )
 
     assert validate(program) == ()
+
+
+def test_validator_resolves_effect_aliases() -> None:
+    program = TaskTileProgram(
+        tasks=(
+            Task("writer", 1, writes=("buffer_view",)),
+            Task("reader", 1, reads=("buffer",)),
+        ),
+        aliases=(("buffer_view", "buffer"),),
+    )
+
+    assert [issue.code for issue in validate(program)] == ["task-effect-order"]

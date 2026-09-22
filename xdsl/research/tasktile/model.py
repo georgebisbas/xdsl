@@ -62,6 +62,7 @@ class TaskTileProgram:
     stages: tuple[TileStage, ...] = ()
     buffers: tuple[Buffer, ...] = ()
     communication: tuple[CommPhase, ...] = ()
+    aliases: tuple[tuple[str, str], ...] = ()
 
     def __post_init__(self) -> None:
         ids = [task.id for task in self.tasks]
@@ -87,6 +88,9 @@ class TaskTileProgram:
         for phase in self.communication:
             if phase.task not in task_ids or phase.bytes < 0 or not phase.ranks:
                 raise ValueError(f"invalid communication phase {phase.id}")
+        for left, right in self.aliases:
+            if not left or not right or left == right:
+                raise ValueError("effect aliases must contain distinct non-empty names")
         self.topological_tasks()
 
     def topological_tasks(self) -> tuple[Task, ...]:

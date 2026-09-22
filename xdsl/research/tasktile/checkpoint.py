@@ -67,6 +67,7 @@ def to_dict(program: TaskTileProgram) -> dict[str, Any]:
             }
             for x in sorted(program.communication, key=lambda x: x.id)
         ],
+        "aliases": [list(alias) for alias in sorted(program.aliases)],
     }
 
 
@@ -132,6 +133,11 @@ def from_dict(data: dict[str, Any]) -> TaskTileProgram:
                     x.get("generated_witness"),
                 )
                 for x in data.get("communication", ())
+            ),
+            aliases=tuple(
+                (alias[0], alias[1])
+                for alias in data.get("aliases", ())
+                if isinstance(alias, (list, tuple)) and len(alias) == 2
             ),
         )
     except (KeyError, TypeError, ValueError) as error:
