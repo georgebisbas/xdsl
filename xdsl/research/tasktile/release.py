@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 
-from .experiment import dump_synthetic_experiment
+from .experiment import dump_synthetic_experiment, summarize_synthetic_experiment
 from .manifest import ArtifactManifest
 from .manifest import dumps as dump_manifest
 from .replay import ReplayConfig
@@ -18,12 +19,18 @@ def create_artifact(
     pypto_revision: str | None = None,
     config: ReplayConfig | None = None,
     hardware: str = "unavailable",
-) -> tuple[Path, Path]:
+) -> tuple[Path, Path, Path]:
     output.mkdir(parents=True, exist_ok=True)
     config = config or ReplayConfig()
     results_path = output / "tasktile-results.json"
     manifest_path = output / "manifest.json"
+    summary_path = output / "tasktile-summary.json"
     results_path.write_text(dump_synthetic_experiment(config), encoding="utf-8")
+    summary_path.write_text(
+        json.dumps(summarize_synthetic_experiment(config), indent=2, sort_keys=True)
+        + "\n",
+        encoding="utf-8",
+    )
     manifest_path.write_text(
         dump_manifest(
             ArtifactManifest(
@@ -36,7 +43,7 @@ def create_artifact(
         ),
         encoding="utf-8",
     )
-    return results_path, manifest_path
+    return results_path, summary_path, manifest_path
 
 
 def main(argv: list[str] | None = None) -> int:
