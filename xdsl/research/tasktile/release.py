@@ -10,10 +10,12 @@ from .experiment import (
     dump_constraint_ablations,
     dump_synthetic_experiment,
     summarize_synthetic_experiment,
+    synthetic_corpus,
 )
 from .manifest import ArtifactManifest
 from .manifest import dumps as dump_manifest
-from .replay import ReplayConfig
+from .replay import ReplayConfig, replay_trace
+from .schedule import schedule_joint
 
 
 def create_artifact(
@@ -31,6 +33,7 @@ def create_artifact(
     manifest_path = output / "manifest.json"
     summary_path = output / "tasktile-summary.json"
     ablations_path = output / "tasktile-ablations.json"
+    trace_path = output / "tasktile-traces.json"
     results_path.write_text(dump_synthetic_experiment(config), encoding="utf-8")
     summary_path.write_text(
         json.dumps(summarize_synthetic_experiment(config), indent=2, sort_keys=True)
@@ -38,6 +41,13 @@ def create_artifact(
         encoding="utf-8",
     )
     ablations_path.write_text(dump_constraint_ablations(config), encoding="utf-8")
+    traces = {
+        name: [event.__dict__ for event in replay_trace(schedule_joint(program))]
+        for name, program in synthetic_corpus()
+    }
+    trace_path.write_text(
+        json.dumps(traces, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     manifest_path.write_text(
         dump_manifest(
             ArtifactManifest(

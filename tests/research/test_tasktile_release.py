@@ -15,6 +15,15 @@ def test_release_writes_results_and_manifest(tmp_path) -> None:
     ablations = tmp_path / "tasktile-ablations.json"
     assert ablations.exists()
     assert len(json.loads(ablations.read_text())) == 15
+    traces = tmp_path / "tasktile-traces.json"
+    assert traces.exists()
+    assert set(json.loads(traces.read_text())) == {
+        "overlap",
+        "independent",
+        "fanout",
+        "collective",
+        "contention",
+    }
     assert len(json.loads(results.read_text())) == 25
     summary_rows = json.loads(summary.read_text())
     assert len(summary_rows) == 5
