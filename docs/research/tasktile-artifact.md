@@ -103,9 +103,10 @@ that experiment; it does not establish a performance result.
 
 The hardware-independent experiment harness is exposed by
 `run_synthetic_experiment`. It evaluates native, task-only, tile-only, joint,
-and oracle variants on deterministic overlap and independent-task workloads and
-returns JSON-compatible replay metrics. These results are model evidence, not
-device-performance evidence.
+and oracle variants on five deterministic workloads: overlap, independent
+tasks, fan-out with shared buffers, a multi-rank collective chain, and resource
+contention. It returns JSON-compatible replay metrics. These results are model
+evidence, not device-performance evidence.
 
 Create a reproducibility manifest with `ArtifactManifest` from
 `xdsl.research.tasktile.manifest`. The manifest records source revisions, the
@@ -119,7 +120,9 @@ PYTHONPATH=. python3 -m xdsl.research.tasktile.release artifacts/local \
   --xdsl-revision <git-revision> --hardware unavailable
 ```
 
-The command writes `tasktile-results.json` and `manifest.json` together.
+The command writes `tasktile-results.json`, `tasktile-summary.json`, and
+`manifest.json` together. The summary is a table-ready projection of
+native/joint/oracle critical paths and exhaustive-search diagnostics.
 
 It is also runnable as a module:
 
