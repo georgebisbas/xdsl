@@ -11,6 +11,7 @@ from .schedule import (
     schedule_task_only,
     schedule_tile_only,
 )
+from .validation import ValidationIssue, assert_legal, validate
 
 __all__ = [
     "Buffer",
@@ -20,6 +21,8 @@ __all__ = [
     "Task",
     "TaskTileProgram",
     "TileStage",
+    "ValidationIssue",
+    "assert_legal",
     "dumps",
     "export_pypto_checkpoint",
     "heuristic_gap",
@@ -30,4 +33,5 @@ __all__ = [
     "schedule_joint",
     "schedule_task_only",
     "schedule_tile_only",
+    "validate",
 ]
